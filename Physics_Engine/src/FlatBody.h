@@ -4,6 +4,7 @@
 #include "FlatAABB.h"
 #include <string>
 #include <vector>
+#include <optional>
 
 class FlatWorld;
 
@@ -64,6 +65,12 @@ public:
 
 	static bool CreateCircleBody(float radius, FlatVector position, float density,
 		bool isStatic, float resitution, FlatBody*& body, std::string& errorMessage);
+
+	std::optional<FlatBody> CreateCircleBody(float radius, FlatVector position, float density, 
+		bool isStatic, float restitution);
+
+	std::optional<FlatBody> CreateBoxBody( float width, float height, FlatVector position, float density,
+		bool b_IsStatic, float restitution, std::string& errorMessage);
 
 	static bool CreateBoxBody(float width, float height, FlatVector position, float density,
 		bool isStatic, float resitution, FlatBody*& body, std::string& errorMessage);

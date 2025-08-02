@@ -17,6 +17,7 @@ Game::~Game() = default;
 
 void Game::Init() {
     srand(time(0));
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Physics");
     SetTargetFPS(60);
     //SetWindowState(FLAG_WINDOW_RESIZABLE);
@@ -49,7 +50,7 @@ void Game::Update(float dt) {
     HandleInput();
 
     auto st = std::chrono::high_resolution_clock::now();
-    world->Step(10, GetFrameTime());
+    world->Step(20, GetFrameTime());
     auto ed = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = ed - st;
     std::cerr << world->BodyCount() << ' ' << duration.count() << '\n';
