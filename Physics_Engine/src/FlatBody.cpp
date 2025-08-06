@@ -3,7 +3,6 @@
 #include "FlatMath.h"
 #include "FlatWorld.h"
 #include <iostream>
-#include <limits>
 
 FlatBody::FlatBody(FlatVector _position, float _density, float _mass, float _restitution, float _area,
 	bool _b_IsStatic, float _radius, float w, float h, ShapeType shape) :
@@ -59,24 +58,24 @@ void FlatBody::SetLinearVelocity(const FlatVector& value) {
 	linearVelovity = value;
 }
 
-void FlatBody::Move(FlatVector amount) {
+void FlatBody::Move(const FlatVector& amount) {
 	position += amount;
 	b_TransformUpdateRequired = true;
 	b_AabbUpdateRequired = true;
 }
 
-void FlatBody::MoveTo(FlatVector pos) {
+void FlatBody::MoveTo(const FlatVector& pos) {
 	position = pos;
 	b_TransformUpdateRequired = true;
 	b_AabbUpdateRequired = true;
 }
 
-void FlatBody::Rotate(float amount) {
+void FlatBody::Rotate(const float& amount) {
 	rotation += amount;
 	b_TransformUpdateRequired = true;
 }
 
-void FlatBody::Step(FlatVector gravity, int iterations, float dt) {
+void FlatBody::Step(FlatVector& gravity, const int& iterations, float dt) {
 	/*FlatVector acceleration = force / mass;
 	linearVelovity += acceleration * dt;*/
 
@@ -125,39 +124,6 @@ std::optional<FlatBody> FlatBody::CreateCircleBody(float radius, FlatVector posi
 	return FlatBody(position, density, mass, restitution, area, isStatic, radius, 0.f, 0.f, ShapeType::Circle);
 }
 
-bool FlatBody::CreateCircleBody(float radius, FlatVector position, float density,
-		bool b_IsStatic, float restitution, FlatBody*& body, std::string& errorMessage) {
-	body = nullptr;
-	errorMessage = "";
-
-	float area = radius * radius * PI;
-
-	if (area < FlatWorld::MIN_BODY_SIZE) {
-		errorMessage = "Circle area is too small. Min circle area is 0.01 x 0.01";
-		return false;
-	}
-	if (area > FlatWorld::MAX_BODY_SIZE) {
-		errorMessage = "Circle area is too large. Max circle area is 64 x 64";
-		return false;
-	}
-	if (density < FlatWorld::MIN_DENSITY) {
-		errorMessage = "Density is too small. Min density is 0.5";
-		return false;
-	}
-	if (density > FlatWorld::MAX_DENSITY) {
-		errorMessage = "Density is too large. Max density is 21.4";
-		return false;
-	}
-
-	restitution = FlatMath::Clamp(restitution, 0.0f, 1.0f);
-	float mass = area * density;
-
-	body = new FlatBody(position, density, mass, restitution, area,
-		b_IsStatic, radius, 0.0f, 0.0f, ShapeType::Circle);
-
-	return  true;
-}
-
 std::vector<int> FlatBody::CreateBoxTriangles() {
 	std::vector<int> triangles(6);
 	triangles[0] = 0;
@@ -170,61 +136,14 @@ std::vector<int> FlatBody::CreateBoxTriangles() {
 	return triangles;
 }
 
-bool FlatBody::CreateBoxBody(float width, float height, FlatVector position, float density,
-	bool b_IsStatic, float restitution, FlatBody*& body, std::string& errorMessage) {
-	body = nullptr;
-	errorMessage = "";
-
-	float area = width * height;
-
-	if (area < FlatWorld::MIN_BODY_SIZE) {
-		errorMessage = "Area is too small. Min area is 0.01 x 0.01";
-		return false;
-	}
-	if (area > FlatWorld::MAX_BODY_SIZE) {
-		errorMessage = "Area is too large. Max area is 64 x 64";
-		return false;
-	}
-	if (density < FlatWorld::MIN_DENSITY) {
-		errorMessage = "Density is too small. Min density is 0.5";
-		return false;
-	}
-	if (density > FlatWorld::MAX_DENSITY) {
-		errorMessage = "Density is too large. Max density is 21.4";
-		return false;
-	}
-
-	restitution = FlatMath::Clamp(restitution, 0.0f, 1.0f);
-	float mass = area * density;
-
-	body = new FlatBody(position, density, mass, restitution, area,
-		b_IsStatic, 0.0f, width, height, ShapeType::Box);
-
-	return  true;
-}
-
 std::optional<FlatBody> FlatBody::CreateBoxBody(float width, float height, FlatVector position, float density,
-	bool b_IsStatic, float restitution, std::string& errorMessage)
+	bool b_IsStatic, float restitution)
 {
-	errorMessage.clear();
 	float area = width * height;
 
-	if (area < FlatWorld::MIN_BODY_SIZE) {
-		errorMessage = "Area is too small. Min area is 0.01 x 0.01";
+	if (area < FlatWorld::MIN_BODY_SIZE || area > FlatWorld::MAX_BODY_SIZE ||
+		density < FlatWorld::MIN_DENSITY || density > FlatWorld::MAX_DENSITY)
 		return std::nullopt;
-	}
-	if (area > FlatWorld::MAX_BODY_SIZE) {
-		errorMessage = "Area is too large. Max area is 64 x 64";
-		return std::nullopt;
-	}
-	if (density < FlatWorld::MIN_DENSITY) {
-		errorMessage = "Density is too small. Min density is 0.5";
-		return std::nullopt;
-	}
-	if (density > FlatWorld::MAX_DENSITY) {
-		errorMessage = "Density is too large. Max density is 21.4";
-		return std::nullopt;
-	}
 
 	restitution = FlatMath::Clamp(restitution, 0.0f, 1.0f);
 	float mass = area * density;
@@ -235,10 +154,10 @@ std::optional<FlatBody> FlatBody::CreateBoxBody(float width, float height, FlatV
 
 FlatAABB FlatBody::GetAABB() {
 	if (b_AabbUpdateRequired) {
-		float minX = std::numeric_limits<float>::max();
-		float minY = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::min();
-		float maxY = std::numeric_limits<float>::min();
+		float minX = FLT_MAX;
+		float minY = FLT_MAX;
+		float maxX = -FLT_MAX;
+		float maxY = -FLT_MAX;
 	
 		if (shapeType == Box) {
 			std::vector<FlatVector> vectices = GetTransformVertices();
@@ -259,7 +178,7 @@ FlatAABB FlatBody::GetAABB() {
 		else {
 			std::cerr << "Unkown shape type!\n";
 		}
-		aabb = new FlatAABB(minX, minY, maxX, maxY);
+		aabb = std::make_unique<FlatAABB>(FlatAABB(minX, minY, maxX, maxY));
 	}
 	b_AabbUpdateRequired = false;
 	return *aabb;

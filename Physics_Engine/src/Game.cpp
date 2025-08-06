@@ -32,28 +32,27 @@ void Game::Init() {
     float paddingY = (maxCam.x - minCam.x) * 0.1f;
     float paddingX = (maxCam.y - minCam.y) * 0.1f;
 
-    FlatBody* groundBody = nullptr;
-    std::string errorMsg;
-    if (!FlatBody::CreateBoxBody(maxCam.x - minCam.x - paddingX * 2, 3.0f, FlatVector(0, 10),
-        1.0f, true, 0.5f, groundBody, errorMsg)) {
-        std::cerr << errorMsg;
+    auto groundBody = FlatBody::CreateBoxBody(maxCam.x - minCam.x - paddingX * 2, 3.0f, FlatVector(0, 10), 1.0f, true, 0.5f);
+
+    if (!groundBody) {
+        std::cerr << "errorMsg";
     }
-    world->AddBody(groundBody);
+    world->AddBody(std::make_unique<FlatBody>(std::move(*groundBody)));
     outlineColors.emplace_back(BLUE);
     colors.emplace_back(DARKGRAY);
 }
 
-void Game::Update(float dt) {
+void Game::Update(float dt) { 
     minCam = GetScreenToWorld2D({ 0, 0 }, camera);
     maxCam = GetScreenToWorld2D({ SCREEN_WIDTH, SCREEN_HEIGHT }, camera);
 
     HandleInput();
 
     auto st = std::chrono::high_resolution_clock::now();
-    world->Step(20, GetFrameTime());
+    world->Step(20, dt);
     auto ed = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = ed - st;
-    std::cerr << world->BodyCount() << ' ' << duration.count() << '\n';
+    std::cerr << world->BodyCount() << " " << duration << '\n';
 
     for (int i = 0; i < world->BodyCount(); i++) {
         FlatBody* body;
@@ -97,7 +96,6 @@ void Game::HandleKeyInput() {
 }
 
 void Game::HandleMouseInput() {
-    std::string errorMsg;
     /*if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f / camera.zoom);
@@ -105,27 +103,27 @@ void Game::HandleMouseInput() {
     }*/
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        FlatBody* box;
         float width = 1.0f + rand() % 2;
         float height = 1.0f + rand() % 2;
 
-        if (!FlatBody::CreateBoxBody(width, height, FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera)),
-            1.0f, false, 0.5f, box, errorMsg)) {
-            std::cerr << errorMsg;
+        auto box = FlatBody::CreateBoxBody(width, height, FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera)),
+            1.0f, false, 0.5f);
+        if (!box) {
+            std::cerr << "errorMsg";
         }
-        world->AddBody(box);
+        world->AddBody(std::make_unique<FlatBody>(std::move(*box)));
         colors.emplace_back(Graphics::GetRandomColor());
         outlineColors.emplace_back(BLUE);
     }
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-        FlatBody* circle;
         float radius = 0.75f + rand() % 1;
-        if(!FlatBody::CreateCircleBody(radius, FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera)),
-            1.0f, false, 0.5f, circle, errorMsg)) {
-            std::cerr << errorMsg;
+        auto circle = FlatBody::CreateCircleBody(radius, FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera)),
+            1.0f, false, 0.5f);
+        if(!circle) {
+            std::cerr << "errorMsg";
         }
-        world->AddBody(circle);
+        world->AddBody(std::make_unique<FlatBody>(std::move(*circle)));
         colors.emplace_back(Graphics::GetRandomColor());
         outlineColors.emplace_back(BLUE);
     }
@@ -182,7 +180,7 @@ void Game::WrapScreen() {
     for (int i = 0; i < world->BodyCount(); i++) {
         FlatBody* body;
         if (!world->GetBody(i, body)) {
-            std::cerr << "failed to get body in Game::WrapScreen!\N";
+            std::cerr << "failed to get body in Game::WrapScreen!\n";
         }
         if (body->GetPosition().x < minCam.x) {
             body->MoveTo(body->GetPosition() + FlatVector{ viewWidth, 0.0f });

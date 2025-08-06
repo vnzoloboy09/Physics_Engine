@@ -14,23 +14,24 @@ FlatWorld::FlatWorld() {
 	gravity = { 0.0f, 9.81f };
 }
 
-void FlatWorld::AddBody(FlatBody*& body) {
-	bodyList.emplace_back(body);
+void FlatWorld::AddBody(std::unique_ptr<FlatBody> body) {
+    bodyList.push_back(std::move(body));
 }
 
-void FlatWorld::RemoveBody(FlatBody* body) {
-    auto it = std::remove(bodyList.begin(), bodyList.end(), body);
-    if (it != bodyList.end()) {
-        bodyList.erase(it, bodyList.end());
-    }
+void FlatWorld::RemoveBody(const FlatBody* body) {
+    bodyList.erase(std::remove_if(bodyList.begin(), bodyList.end(),
+        [&](const std::unique_ptr<FlatBody>& ptr) { return ptr.get() == body; }),
+        bodyList.end()
+    );
 }
 
 bool FlatWorld::GetBody(int id, FlatBody*& body) {
-    body = nullptr;
     if (id < 0 || id >= bodyList.size()) {
+        body = nullptr;
         return false;
     }
-    body = bodyList[id];
+
+    body = bodyList[id].get(); 
     return true;
 }
 
@@ -40,6 +41,7 @@ int FlatWorld::BodyCount() const {
 
 void FlatWorld::Step(int iterations, float dt) { 
     iterations = FlatMath::Clamp(iterations, MIN_ITERATIONS, MAX_ITERATIONS);
+
     for (int it = 0; it < iterations; it++) {
         // Moverment
         for (int i = 0; i < bodyList.size(); i++) {
@@ -49,10 +51,10 @@ void FlatWorld::Step(int iterations, float dt) {
         // Collision
         if(BodyCount() > 1) // only do collisions when there more than one body
         for (int i = 0; i < bodyList.size() - 1; i++) {
-            FlatBody*& bodyA = bodyList[i];
+            FlatBody* bodyA = bodyList[i].get();
             
             for (int j = i + 1; j < bodyList.size(); j++) {
-                FlatBody*& bodyB = bodyList[j];
+                FlatBody* bodyB = bodyList[j].get();
 
                 if (bodyA->b_IsStatic && bodyB->b_IsStatic) {
                     continue;
@@ -72,11 +74,9 @@ void FlatWorld::Step(int iterations, float dt) {
                         bodyA->Move(-normal * depth * 0.5f);
                         bodyB->Move(normal * depth * 0.5f);
                     }
-
                     ResolveCollision(bodyA, bodyB, normal, depth);
                 }
             }
-
         }
     }
 }

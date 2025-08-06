@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory> 
 #include "raylib.h"
 #include "FlatBody.h"
 
@@ -16,13 +17,13 @@ public:
 
 	FlatVector gravity;
 
-	std::vector<FlatBody*> bodyList;
+	std::vector<std::unique_ptr<FlatBody>> bodyList;
 
 public:
 	FlatWorld();
 
-	void AddBody(FlatBody*& body);
-	void RemoveBody(FlatBody* body);
+	void AddBody(std::unique_ptr<FlatBody> body);
+	void RemoveBody(const FlatBody* body);
 	bool GetBody(int id, FlatBody*& body);
 	void Step(int iterations, float dt);
 
