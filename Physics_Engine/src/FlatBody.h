@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <memory>
 
 class FlatWorld;
 
@@ -24,7 +25,6 @@ public:
 	const float width;
 	const float height;
 
-
 	const bool b_IsStatic;
 	const ShapeType shapeType;
 
@@ -34,7 +34,7 @@ public:
 private:
 	friend class FlatWorld;
 	std::vector<FlatVector> transformVertices;
-	FlatAABB* aabb;
+	std::unique_ptr<FlatAABB> aabb;
 	
 	bool b_TransformUpdateRequired;
 	bool b_AabbUpdateRequired;
@@ -46,34 +46,28 @@ private:
 	float rotaionVelocity;
 
 private:
-	FlatBody(FlatVector _position, float _density, float _mass, float _restitution, float _area,
-		bool _b_IsStatic, float _radius, float _width, float _height, ShapeType shape);
-
 	static std::vector<FlatVector> CreateBoxVertices(int width, int height);
 	static std::vector<int> CreateBoxTriangles();
 
 public:
-	void Move(FlatVector amount);
-	void MoveTo(FlatVector pos);
-	void Rotate(float amount);
-	void Step(FlatVector gravity, int itertaions, float dt);
+	FlatBody(FlatVector _position, float _density, float _mass, float _restitution, float _area,
+		bool _b_IsStatic, float _radius, float _width, float _height, ShapeType shape);
+
+	void Move(const FlatVector& amount);
+	void MoveTo(const FlatVector& pos);
+	void Rotate(const float& amount);
+	void Step(FlatVector& gravity, const int& itertaions, float dt);
 	void AddForce(FlatVector amount);
 
 	FlatVector GetLinearVelocity() const;
 
 	std::vector<FlatVector> GetTransformVertices();
 
-	static bool CreateCircleBody(float radius, FlatVector position, float density,
-		bool isStatic, float resitution, FlatBody*& body, std::string& errorMessage);
-
-	std::optional<FlatBody> CreateCircleBody(float radius, FlatVector position, float density, 
+	static std::optional<FlatBody> CreateCircleBody(float radius, FlatVector position, float density, 
 		bool isStatic, float restitution);
 
-	std::optional<FlatBody> CreateBoxBody( float width, float height, FlatVector position, float density,
-		bool b_IsStatic, float restitution, std::string& errorMessage);
-
-	static bool CreateBoxBody(float width, float height, FlatVector position, float density,
-		bool isStatic, float resitution, FlatBody*& body, std::string& errorMessage);
+	static std::optional<FlatBody> CreateBoxBody( float width, float height, FlatVector position, float density,
+		bool b_IsStatic, float restitution);
 
 	FlatAABB GetAABB();
 

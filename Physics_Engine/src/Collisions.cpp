@@ -1,15 +1,14 @@
 #include "Collisions.h"
 #include "FlatMath.h"
-#include <limits>
 #include <algorithm>
-#include <iostream>
+//#include <iostream>
+#include <chrono>
 
-void Collisions::ProjectVertices(std::vector<FlatVector> vertices, FlatVector axis, float& _min, float& _max) {
-	_min = std::numeric_limits<float>::max();
-	_max = std::numeric_limits<float>::min();
+void Collisions::ProjectVertices(const std::vector<FlatVector>& vertices, const FlatVector& axis, float& _min, float& _max) {
+	_min = FLT_MAX;
+	_max = -FLT_MAX;
 
-	for (int i = 0; i < vertices.size(); i++) {
-		FlatVector v = vertices[i];
+	for (auto& v : vertices) {
 		float projection = FlatMath::Dot(v, axis);
 
 		if (projection < _min) { _min = projection; }
@@ -31,7 +30,7 @@ void Collisions::ProjectCircle(FlatVector center, float radius, FlatVector axis,
 
 int Collisions::FindClosePointOnPolygon(FlatVector circleCenter, std::vector<FlatVector> vertices) {
 	int result = -1;
-	float minDistance = std::numeric_limits<float>::max();
+	float minDistance = FLT_MAX;
 
 	for (int i = 0; i < vertices.size(); i++) {
 		float distance = FlatMath::Distance(vertices[i], circleCenter);
@@ -55,8 +54,10 @@ FlatVector Collisions::FindArithmeticMean(std::vector<FlatVector> vertices) {
 	return FlatVector(sumX / vertices.size(), sumY / vertices.size());
 }
 
-bool Collisions::IntersectCircles(FlatVector centerA, float radiusA, 
-	FlatVector centerB, float radiusB, FlatVector& normal, float& depth) 
+bool Collisions::IntersectCircles(
+	const FlatVector& centerA, const float& radiusA,
+	const FlatVector& centerB, const float& radiusB, 
+	FlatVector& normal, float& depth)
 {
 	normal = FlatVector();
 	depth = 0.0f; 
@@ -72,11 +73,13 @@ bool Collisions::IntersectCircles(FlatVector centerA, float radiusA,
 	return true;
 }
 
-bool Collisions::IntersectPolygons(std::vector<FlatVector> verticesA, std::vector<FlatVector> verticesB,
+bool Collisions::IntersectPolygons(
+	const std::vector<FlatVector>& verticesA, 
+	const std::vector<FlatVector>& verticesB,
 	FlatVector& normal, float& depth) 
 {
 	normal = FlatVector();
-	depth = std::numeric_limits<float>::max();
+	depth = FLT_MAX;
 
 	for (int i = 0; i < verticesA.size(); i++) {
 		FlatVector va = verticesA[i];
@@ -140,15 +143,17 @@ bool Collisions::IntersectPolygons(std::vector<FlatVector> verticesA, std::vecto
 	return true;
 }
 
-bool Collisions::IntersectPolygons(FlatVector centerA, std::vector<FlatVector> verticesA,
-	FlatVector centerB, std::vector<FlatVector> verticesB, FlatVector& normal, float& depth) 
+bool Collisions::IntersectPolygons(
+	const FlatVector& centerA, const std::vector<FlatVector>& verticesA,
+	const FlatVector& centerB, const std::vector<FlatVector>& verticesB, 
+	FlatVector& normal, float& depth)
 {
 	normal = FlatVector();
-	depth = std::numeric_limits<float>::max();
+	depth = FLT_MAX;
 
 	for (int i = 0; i < verticesA.size(); i++) {
-		FlatVector va = verticesA[i];
-		FlatVector vb = verticesA[(i + 1) % verticesA.size()];
+		const FlatVector& va = verticesA[i];
+		const FlatVector& vb = verticesA[(i + 1) % verticesA.size()];
 
 		FlatVector edge = vb - va;
 		FlatVector axis = FlatVector(-edge.y, edge.x);
@@ -170,8 +175,8 @@ bool Collisions::IntersectPolygons(FlatVector centerA, std::vector<FlatVector> v
 	}
 
 	for (int i = 0; i < verticesB.size(); i++) {
-		FlatVector va = verticesB[i];
-		FlatVector vb = verticesB[(i + 1) % verticesB.size()];
+		const FlatVector& va = verticesB[i];
+		const FlatVector& vb = verticesB[(i + 1) % verticesB.size()];
 
 		FlatVector edge = vb - va;
 		FlatVector axis = FlatVector(-edge.y, edge.x);
@@ -186,9 +191,6 @@ bool Collisions::IntersectPolygons(FlatVector centerA, std::vector<FlatVector> v
 			return false;
 		}
 
-		if (minA >= maxB || minB >= maxA) {
-			return false;
-		}
 		float axisDepth = std::min(maxB - minA, maxA - minB);
 		if (axisDepth < depth) {
 			depth = axisDepth;
@@ -205,11 +207,11 @@ bool Collisions::IntersectPolygons(FlatVector centerA, std::vector<FlatVector> v
 	return true;
 }
 
-bool Collisions::IntersectCirclePolygon(FlatVector circleCenter, float cirleRadius,
-	std::vector<FlatVector> vertices, FlatVector& normal, float& depth) 
+bool Collisions::IntersectCirclePolygon(const FlatVector& circleCenter, const float& cirleRadius,
+	const std::vector<FlatVector>& vertices, FlatVector& normal, float& depth)
 {
 	normal = FlatVector();
-	depth = std::numeric_limits<float>::max();
+	depth = FLT_MAX;
 	FlatVector axis = FlatVector();
 	float axisDepth = 0.0f;
 	float minA, maxA, minB, maxB;
@@ -265,11 +267,11 @@ bool Collisions::IntersectCirclePolygon(FlatVector circleCenter, float cirleRadi
 	return true;
 }
 
-bool Collisions::IntersectCirclePolygon(FlatVector circleCenter, float cirleRadius,
-	FlatVector polygonCenter, std::vector<FlatVector> vertices, FlatVector& normal, float& depth) 
+bool Collisions::IntersectCirclePolygon(const FlatVector& circleCenter, const float& cirleRadius,
+	const FlatVector& polygonCenter, const std::vector<FlatVector>& vertices, FlatVector& normal, float& depth)
 {
 	normal = FlatVector();
-	depth = std::numeric_limits<float>::max();
+	depth = FLT_MAX;
 	FlatVector axis = FlatVector();
 	float axisDepth = 0.0f;
 	float minA, maxA, minB, maxB;
