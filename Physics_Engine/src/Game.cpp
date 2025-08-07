@@ -12,6 +12,8 @@
 std::vector<Color> colors;
 std::vector<Color> outlineColors;
 
+auto sampleTimer = std::chrono::high_resolution_clock::now();
+
 Game::Game() = default;
 Game::~Game() = default;
 
@@ -45,14 +47,29 @@ void Game::Init() {
 void Game::Update(float dt) { 
     minCam = GetScreenToWorld2D({ 0, 0 }, camera);
     maxCam = GetScreenToWorld2D({ SCREEN_WIDTH, SCREEN_HEIGHT }, camera);
-
+    
     HandleInput();
 
     auto st = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = st - sampleTimer;
+
+    if (elapsed.count() > 1) {
+        bodyCountString = "Body count: " + std::to_string(totalBodyCount / totalSampleCount);
+        worldStepTimeString = "Step time: " + std::to_string(std::round(totalWorldTimeStep / totalSampleCount * 10000.0) / 10000.0);
+
+        totalWorldTimeStep = 0;
+        totalBodyCount = 0;
+        totalSampleCount = 0;
+        sampleTimer = std::chrono::high_resolution_clock::now();
+    }
+    
     world->Step(20, dt);
     auto ed = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = ed - st;
-    std::cerr << world->BodyCount() << " " << duration << '\n';
+    
+    totalWorldTimeStep += duration.count();
+    totalBodyCount += world->BodyCount();
+    totalSampleCount++;
 
     for (int i = 0; i < world->BodyCount(); i++) {
         FlatBody* body;
@@ -165,7 +182,13 @@ void Game::Redner() {
         }
     }
 
+    for (auto& point : world->contactPointsList) {
+        DrawCircleV(FlatConverter::ToVector2(point), 0.5f, RED);
+    }
+
     EndMode2D();
+    DrawText(worldStepTimeString.c_str(), 20, 20, 20, BLACK);
+    DrawText(bodyCountString.c_str(), 20, 40, 20, BLACK);
     EndDrawing();
 }
 

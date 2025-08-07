@@ -147,6 +147,7 @@
     <ClCompile Include="src\FlatAABB.cpp" />
     <ClCompile Include="src\FlatBody.cpp" />
     <ClCompile Include="src\FlatConverter.cpp" />
+    <ClCompile Include="src\FlatManifold.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
     <ClCompile Include="src\FlatPhysics.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src\FlatAABB.h" />
     <ClInclude Include="src\FlatBody.h" />
     <ClInclude Include="src\FlatConverter.h" />
+    <ClInclude Include="src\FlatManifold.h" />
     <ClInclude Include="src\FlatMath.h" />
     <ClInclude Include="src\FlatTransform.h" />
     <ClInclude Include="src\FlatVector.h" />

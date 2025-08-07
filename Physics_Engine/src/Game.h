@@ -11,6 +11,12 @@ private:
 	Vector2 minCam, maxCam;
 	FlatWorld* world = nullptr;
 
+	double totalWorldTimeStep = 0;
+	int totalBodyCount = 0;
+	int totalSampleCount = 0;
+	std::string worldStepTimeString;
+	std::string bodyCountString;
+
 public:
 	Game();
 	~Game();
