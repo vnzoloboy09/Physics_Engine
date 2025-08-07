@@ -15,4 +15,8 @@ public:
     static void DrawCircleFill(const Vector2 position, const float radius, const Color color);
     static void DrawCircleOutline(const Vector2 position, const float radius, const Color color);
     static void DrawCircleFull(const Vector2 position, const float radius, const Color fillColor, const Color outlineColor);
+    static void DrawBoxFill(const Vector2& position, const float& width, const float& height, const float& angle, const Color& fillColor);
+    static void DrawBoxOutline(const Vector2& position, const float& width, const float& height, const Color& outlineColor);
+    static void DrawBoxFull(const Vector2& position, const float& width, const float& height, 
+        const float& angle, const Color& fillColor, const Color& outlineColor);
 };

@@ -8,7 +8,7 @@ int main(void) {
     float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
         game->Update(dt);
-        game->Redner(); 
+        game->Render(); 
     }
 
     game->Quit();

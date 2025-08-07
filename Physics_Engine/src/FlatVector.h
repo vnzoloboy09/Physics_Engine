@@ -32,6 +32,9 @@ public:
 	FlatVector operator /(const float& scalar);
     friend FlatVector operator *(float scalar, const FlatVector& vec);
 
+	bool Equals(const FlatVector& other) const;
+	bool operator==(const FlatVector& other) const;
+
 	FlatVector& Zero();
 
 	static FlatVector Transform(FlatVector v, FlatTransform transform);

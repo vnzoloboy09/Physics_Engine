@@ -25,8 +25,17 @@ public:
 	static void FindContactPoints(FlatBody*& bodyA, FlatBody*& bodyB, FlatVector& contact1, FlatVector& contact2, int& contactCount);
 
 	static bool Collide(FlatBody*& bodyA, FlatBody*& bodyB, FlatVector& normal, float& depth);
+
+	static void PointSegmentDistance(const FlatVector& p, const FlatVector& a, const FlatVector& b,
+		float& distanceSquare, FlatVector& contact);
 	
 private:
-	static void FindContactPoint(const FlatVector& centerA, const float& radiusA,
-		const FlatVector& centerB, FlatVector& cp);
+	static void FindCircleContactPoint(const FlatVector& centerA, const float& radiusA,
+		const FlatVector& centerB, FlatVector& contact);
+
+	static void FindPolygonContactPoint(const std::vector<FlatVector> verticesA, const std::vector<FlatVector> verticesB, 
+		FlatVector& contact1, FlatVector& contact2, int& contactCount);
+
+	static void FindCirclePolygonContactPoint(const FlatVector& centerA, const float& radiusA,
+		const FlatVector& centerB, const std::vector<FlatVector>& polygonVertices,FlatVector& contact);
 };

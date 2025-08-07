@@ -95,6 +95,14 @@ FlatVector operator *(float scalar, const FlatVector& v) {
 	return { v.x * scalar, v.y * scalar };
 }
 
+bool FlatVector::Equals(const FlatVector& other) const {
+	return this->x == other.x && this->y == other.y;
+}
+
+bool FlatVector::operator==(const FlatVector& other) const {
+	return this->Equals(other);
+}
+
 FlatVector& FlatVector::Zero() {
 	this->x = 0.0f;
 	this->y = 0.0f;

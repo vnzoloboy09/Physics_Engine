@@ -99,10 +99,14 @@ void FlatWorld::Step(int iterations, float dt) {
                 ResolveCollision(contact);
 
                 if (contact->contactCount > 0) {
-                    contactPointsList.push_back(contact->contact1);
+                    if (!(std::find(contactPointsList.begin(), contactPointsList.end(), contact->contact1) != contactPointsList.end())) {
+                        contactPointsList.push_back(contact->contact1);
+                    }
 
                     if (contact->contactCount > 1) {
-                        contactPointsList.push_back(contact->contact2);
+                        if (!(std::find(contactPointsList.begin(), contactPointsList.end(), contact->contact2) != contactPointsList.end())) {
+                            contactPointsList.push_back(contact->contact2);
+                        }
                     }
                 }
             }

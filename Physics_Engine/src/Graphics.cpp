@@ -25,6 +25,21 @@ void Graphics::DrawPolygonFull(const std::vector<Vector2>& vertices, const std::
     DrawPolygonOutline(vertices, outlineColor);
 }
 
+void Graphics::DrawBoxFill(const Vector2& position, const float& width, const float& height, const float& angle, const Color& fillColor) {
+    Rectangle rect = { position.x, position.y, width, height }; 
+    DrawRectanglePro(rect, { width / 2.0f, height / 2.0f }, angle * 180.0f / PI, fillColor);
+}
+
+void Graphics::DrawBoxOutline(const Vector2& position, const float& width, const float& height, const Color& outlineColor) {
+    DrawRectangleLinesEx({ position.x - width / 2.0f, position.y - height / 2.0f, width, height }, 1, outlineColor);
+}
+
+void Graphics::DrawBoxFull(const Vector2& position, const float& width, const float& height, 
+    const float& angle, const Color& fillColor, const Color& outlineColor) {
+    DrawBoxFill(position, width, height, angle, fillColor);
+    DrawBoxOutline(position, width, height, outlineColor);
+}
+
 void Graphics::DrawCircleFill(const Vector2 position, const float radius, const Color color) {
     DrawCircleV(position, radius, color);
 }

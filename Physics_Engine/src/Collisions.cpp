@@ -200,29 +200,124 @@ void Collisions::FindContactPoints(FlatBody*& bodyA, FlatBody*& bodyB, FlatVecto
 
 	if (shapeTypeA == FlatBody::ShapeType::Box) {
 		if (shapeTypeB == FlatBody::ShapeType::Box) {
-			
+			FindPolygonContactPoint(bodyA->GetTransformVertices(), bodyB->GetTransformVertices(), contact1, contact2, contactCount);
 		}
 		else if (shapeTypeB == FlatBody::ShapeType::Circle) {
-			
+			FindCirclePolygonContactPoint(bodyB->GetPosition(), bodyB->radius, bodyA->GetPosition(), bodyA->GetTransformVertices(), contact1);
+			contactCount = 1;
 		}
 	}
 	else if (shapeTypeA == FlatBody::ShapeType::Circle) {
 		if (shapeTypeB == FlatBody::ShapeType::Box) {
-			
+			FindCirclePolygonContactPoint(bodyA->GetPosition(), bodyA->radius, bodyB->GetPosition(), bodyB->GetTransformVertices(), contact1);
+			contactCount = 1;
 		}
 		else if (shapeTypeB == FlatBody::ShapeType::Circle) {
-			FindContactPoint(bodyA->GetPosition(), bodyA->radius, bodyB->GetPosition(), contact1);
+			FindCircleContactPoint(bodyA->GetPosition(), bodyA->radius, bodyB->GetPosition(), contact1);
 			contactCount = 1;
 		}
 	}
 }
 
-void Collisions::FindContactPoint(const FlatVector& centerA, const float& radiusA,
-	const FlatVector& centerB, FlatVector& cp)
+void Collisions::FindCircleContactPoint(const FlatVector& centerA, const float& radiusA,
+	const FlatVector& centerB, FlatVector& contact)
 {
 	FlatVector ab = centerB - centerA;
 	FlatVector direction = FlatMath::Normalize(ab);
-	cp = centerA + direction * radiusA;
+	contact = centerA + direction * radiusA;
+}
+
+void Collisions::FindPolygonContactPoint(const std::vector<FlatVector> verticesA, const std::vector<FlatVector> verticesB,
+	FlatVector& contact1, FlatVector& contact2, int& contactCount)
+{
+	float distanceSquared;
+	FlatVector cp;
+	float minDisSq = FLT_MAX;
+
+	for (auto& p : verticesA) {
+		for (int i = 0; i < verticesB.size(); i++) {
+			const FlatVector& va = verticesB[i];
+			const FlatVector& vb = verticesB[(i+1) % verticesB.size()];
+
+			PointSegmentDistance(p, va, vb, distanceSquared, cp);
+
+			if (FlatMath::NearlyEqual(distanceSquared, minDisSq)) {
+				if (!FlatMath::NearlyEqual(cp, contact1)) {
+					contact2 = cp;
+					contactCount = 2;
+				}
+			}
+			else if (distanceSquared < minDisSq) {
+				minDisSq = distanceSquared;
+				contact1 = cp;
+				contactCount = 1;
+			}
+		}
+	}
+
+	for (auto& p : verticesB) {
+		for (int i = 0; i < verticesA.size(); i++) {
+			const FlatVector& va = verticesA[i];
+			const FlatVector& vb = verticesA[(i + 1) % verticesA.size()];
+
+			PointSegmentDistance(p, va, vb, distanceSquared, cp);
+
+			if (FlatMath::NearlyEqual(distanceSquared, minDisSq)) {
+				if (!FlatMath::NearlyEqual(cp, contact1)) {
+					contact2 = cp;
+					contactCount = 2;
+				}
+			}
+			else if (distanceSquared < minDisSq) {
+				minDisSq = distanceSquared;
+				contact1 = cp;
+				contactCount = 1;
+			}
+		}
+	}
+}
+
+void Collisions::PointSegmentDistance(const FlatVector& p, const FlatVector& a, const FlatVector& b,
+	float& distanceSquared, FlatVector& cp) 
+{
+	FlatVector ab = b - a;
+	FlatVector ap = p - a;
+
+	float proj = FlatMath::Dot(ap, ab);
+	float abLenSq = FlatMath::LengthSquared(ab);
+	float dis = proj / abLenSq;
+
+	if (dis < 0.0f) {
+		cp = a;
+	}
+	else if (dis > 1.0f) {
+		cp = b;
+	}
+	else {
+		cp = a + ab * dis;
+	}
+
+	distanceSquared = FlatMath::DistanceSquared(p, cp);
+}
+
+void Collisions::FindCirclePolygonContactPoint(const FlatVector& centerA, const float& radiusA,
+	const FlatVector& centerB, const std::vector<FlatVector>& polygonVertices, FlatVector& outContact) 
+{
+	float distanceSquared;
+	float minDistanceSquared = FLT_MAX;
+	FlatVector contact;
+
+	for (int i = 0; i < polygonVertices.size(); i++) {
+		FlatVector va = polygonVertices[i];
+		FlatVector vb = polygonVertices[(i + 1) % polygonVertices.size()];
+
+		PointSegmentDistance(centerA, va, vb, distanceSquared, contact);
+
+		if (distanceSquared < minDistanceSquared) {
+			minDistanceSquared = distanceSquared;
+			outContact = contact;
+		}
+	}
 }
 
 bool Collisions::Collide(FlatBody*& bodyA, FlatBody*& bodyB, FlatVector& normal, float& depth) {

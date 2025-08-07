@@ -26,7 +26,7 @@ public:
 	void HandleMouseInput();
 	void HandleInput();
 	void Update(float dt);
-	void Redner();
+	void Render();
 	void Quit();
 
 	void WrapScreen();

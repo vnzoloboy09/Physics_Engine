@@ -16,6 +16,7 @@ public:
 		Box = 1
 	};
 	
+	const ShapeType shapeType;
 	const float mass;
 	const float invMass;
 	const float density;
@@ -24,12 +25,13 @@ public:
 	const float radius;
 	const float width;
 	const float height;
-
 	const bool b_IsStatic;
-	const ShapeType shapeType;
+	const float inertia;
+	const float invInertia;
 
-	std::vector<int> triangles;
 	const std::vector<FlatVector> vertices;
+	float angle;
+	float angularVelocity;
 
 private:
 	friend class FlatWorld;
@@ -42,20 +44,20 @@ private:
 	FlatVector position;
 	FlatVector linearVelovity;
 	FlatVector force;
-	float rotation;
-	float rotaionVelocity;
 
 private:
-	static std::vector<FlatVector> CreateBoxVertices(int width, int height);
+	static std::vector<FlatVector> CreateBoxVertices(const float& width, const float& height);
 	static std::vector<int> CreateBoxTriangles();
 
 public:
-	FlatBody(FlatVector _position, float _density, float _mass, float _restitution, float _area,
-		bool _b_IsStatic, float _radius, float _width, float _height, ShapeType shape);
+	FlatBody(const float& _density, const float& _mass, const float& inertia, const float& _restitution, const float& _area,
+		const bool& _b_IsStatic, const float& _radius, const float& _width, const float& _height, 
+		const std::vector<FlatVector>& vertices, const ShapeType& shape);
 
 	void Move(const FlatVector& amount);
 	void MoveTo(const FlatVector& pos);
 	void Rotate(const float& amount);
+	void RotateTo(const float& angle);
 	void Step(FlatVector& gravity, const int& itertaions, float dt);
 	void AddForce(FlatVector amount);
 
@@ -63,11 +65,9 @@ public:
 
 	std::vector<FlatVector> GetTransformVertices();
 
-	static std::optional<FlatBody> CreateCircleBody(float radius, FlatVector position, float density, 
-		bool isStatic, float restitution);
+	static std::optional<FlatBody> CreateCircleBody(float radius, float density, bool isStatic, float restitution);
 
-	static std::optional<FlatBody> CreateBoxBody( float width, float height, FlatVector position, float density,
-		bool b_IsStatic, float restitution);
+	static std::optional<FlatBody> CreateBoxBody( float width, float height, float density, bool b_IsStatic, float restitution);
 
 	FlatAABB GetAABB();
 
@@ -75,5 +75,4 @@ public:
 
 protected:
 	void SetLinearVelocity(const FlatVector& value);
-
 };
