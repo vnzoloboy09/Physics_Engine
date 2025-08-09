@@ -8,8 +8,8 @@
 class FlatWorld {
 private:
 	FlatVector gravity;
-	std::vector<std::unique_ptr<FlatBody>> bodyList;
-	std::vector<std::unique_ptr<FlatManifold>> contactList;
+	std::vector<FlatBody*> bodyList;
+	std::vector<FlatManifold*> contactList;
 
 public:
 	static const float MIN_BODY_SIZE;  // m^2
@@ -26,12 +26,13 @@ public:
 public:
 	FlatWorld();
 
-	void AddBody(std::unique_ptr<FlatBody> body);
-	void RemoveBody(const FlatBody* body);
+	void AddBody(FlatBody*& body);
+	void RemoveBody(FlatBody*& body);
 	bool GetBody(const int& id, FlatBody*& body);
 	void Step(int iterations, float dt);
+	void SeparateBodies(FlatBody*& bodyA, FlatBody*& bodyB, const FlatVector& mtv);
 
-	void ResolveCollision(const std::unique_ptr<FlatManifold>& contact);
+	void ResolveCollision(FlatManifold*& contact);
 
 	size_t BodyCount() const;
 };    

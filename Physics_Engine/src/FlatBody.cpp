@@ -2,7 +2,6 @@
 #include "Def.h"
 #include "FlatMath.h"
 #include "FlatWorld.h"
-#include <iostream>
 
 FlatBody::FlatBody(const float& _density, const float& _mass, const float& _inertia, const float& _restitution, const float& _area,
 	const bool& _b_IsStatic, const float& _radius, const float& _width, const float& _height, 
@@ -35,6 +34,52 @@ FlatBody::FlatBody(const float& _density, const float& _mass, const float& _iner
 	b_TransformUpdateRequired = true;
 	b_AabbUpdateRequired = true;
 }
+
+FlatBody::FlatBody(const FlatBody& other) :
+	position(other.position),
+	density(other.density),
+	mass(other.mass),
+	invMass(other.invMass),
+	restitution(other.restitution),
+	area(other.area),
+	b_IsStatic(other.b_IsStatic),
+	radius(other.radius),
+	width(other.width),
+	height(other.height),
+	shapeType(other.shapeType),
+	vertices(other.vertices),
+	inertia(other.inertia),
+	invInertia(other.invInertia),
+	force(other.force),
+	transformVertices(other.transformVertices),
+	angle(other.angle),
+	angularVelocity(other.angularVelocity),
+	b_TransformUpdateRequired(other.b_TransformUpdateRequired),
+	b_AabbUpdateRequired(other.b_AabbUpdateRequired)
+{}
+
+FlatBody::FlatBody(FlatBody&& other) noexcept :
+	position(std::move(other.position)),
+	density(other.density),
+	mass(other.mass),
+	invMass(other.invMass),
+	restitution(other.restitution),
+	area(other.area),
+	b_IsStatic(other.b_IsStatic),
+	radius(other.radius),
+	width(other.width),
+	height(other.height),
+	shapeType(other.shapeType),
+	vertices(other.vertices),
+	inertia(other.inertia),
+	invInertia(other.invInertia),
+	force(std::move(other.force)),
+	transformVertices(std::move(other.transformVertices)),
+	angle(other.angle),
+	angularVelocity(other.angularVelocity),
+	b_TransformUpdateRequired(other.b_TransformUpdateRequired),
+	b_AabbUpdateRequired(other.b_AabbUpdateRequired)
+{}
 
 std::vector<FlatVector> FlatBody::CreateBoxVertices(const float& width, const float& height) {
 	float left = -width / 2.0f;
@@ -119,23 +164,30 @@ std::vector<FlatVector> FlatBody::GetTransformVertices() {
 	return transformVertices;
 }
 
-std::optional<FlatBody> FlatBody::CreateCircleBody(float radius, float density, bool isStatic, float restitution) {
-	float area = radius * radius * PI;
-	if (area < FlatWorld::MIN_BODY_SIZE || area > FlatWorld::MAX_BODY_SIZE ||
-		density < FlatWorld::MIN_DENSITY || density > FlatWorld::MAX_DENSITY)
-		return std::nullopt;
+bool FlatBody::CreateCircleBody(float radius, float density,bool b_IsStatic, float restitution, FlatBody*& body) {
+	body = nullptr;
 
-	restitution = FlatMath::Clamp(restitution, 0.f, 1.f);
+	float area = radius * radius * PI;
+
+	if (area < FlatWorld::MIN_BODY_SIZE || area > FlatWorld::MAX_BODY_SIZE ||
+		density < FlatWorld::MIN_DENSITY || density > FlatWorld::MAX_DENSITY) {
+		return false;
+	}
+
+	restitution = FlatMath::Clamp(restitution, 0.0f, 1.0f);
 
 	float mass = 0.0f;
 	float inertia = 0.0f;
-	
-	if (!isStatic) {
+
+	if (!b_IsStatic) {
 		mass = area * density;
 		inertia = (1.0f / 2.0f) * mass * radius * radius;
 	}
 
-	return FlatBody(density, mass, inertia, restitution, area, isStatic, radius, 0.f, 0.f, std::vector<FlatVector>{}, ShapeType::Circle);
+	body = new FlatBody(density, mass, inertia, restitution, area,
+		b_IsStatic, radius, 0.0f, 0.0f, std::vector<FlatVector>{}, ShapeType::Circle);
+
+	return  true;
 }
 
 std::vector<int> FlatBody::CreateBoxTriangles() {
@@ -150,24 +202,27 @@ std::vector<int> FlatBody::CreateBoxTriangles() {
 	return triangles;
 }
 
-std::optional<FlatBody> FlatBody::CreateBoxBody(float width, float height, float density, bool b_IsStatic, float restitution)
+bool FlatBody::CreateBoxBody(float width, float height, float density, bool b_IsStatic, float restitution, FlatBody*& body)
 {
 	float area = width * height;
 
 	if (area < FlatWorld::MIN_BODY_SIZE || area > FlatWorld::MAX_BODY_SIZE ||
 		density < FlatWorld::MIN_DENSITY || density > FlatWorld::MAX_DENSITY)
-		return std::nullopt;
+		return false;
 
 	restitution = FlatMath::Clamp(restitution, 0.0f, 1.0f);
 	float mass = 0.0f;
 	float inertia = 0.0f;
+
 	if (!b_IsStatic) {
 		mass = area * density;
 		inertia = (1.0f / 12.0f) * mass * (width * width + height * height);
 	}
-	std::vector<FlatVector> vertices = CreateBoxVertices(width, height);
 
-	return FlatBody(density, mass, inertia, restitution, area, b_IsStatic, 0.0f, width, height, vertices, ShapeType::Box);
+	std::vector<FlatVector> vertices = CreateBoxVertices(width, height);
+	body = new FlatBody(density, mass, inertia, restitution, area, b_IsStatic, 0.0f, width, height, vertices, ShapeType::Box);
+
+	return true;
 }
 
 FlatAABB FlatBody::GetAABB() {
@@ -194,7 +249,7 @@ FlatAABB FlatBody::GetAABB() {
 			maxY = position.y + radius;
 		}
 		else {
-			std::cerr << "Unkown shape type!\n";
+			__debugbreak();
 		}
 		aabb = std::make_unique<FlatAABB>(FlatAABB(minX, minY, maxX, maxY));
 	}

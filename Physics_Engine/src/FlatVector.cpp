@@ -1,5 +1,4 @@
 #include "FlatVector.h"
-#include <iostream>
 
 FlatVector::FlatVector() {
 	x = 0.0f;
@@ -53,7 +52,7 @@ FlatVector operator *(const FlatVector& v1, const FlatVector& v2) {
 
 FlatVector operator /(const FlatVector& v1, const FlatVector& v2) {
 	if (v2.x == 0 || v2.y == 0) {
-		std::cerr << "divide by 0!!!!";
+		__debugbreak();
 		return FlatVector();
 	}
 	return FlatVector(v1.x / v2.x, v1.y / v2.y);
@@ -79,12 +78,20 @@ FlatVector FlatVector::operator *(const float& scalar) {
 	return FlatVector(this->x * scalar, this->y * scalar);
 }
 
+FlatVector FlatVector::operator *(const float& scalar) const {
+	return FlatVector(this->x * scalar, this->y * scalar);
+}
+
 FlatVector FlatVector::operator /(const float& scalar) {
 	if (scalar == 0) {
-		std::cerr << "flat vector divided by 0!\n";
+		__debugbreak();
 		return *this;
 	}
 	return FlatVector(this->x / scalar, this->y / scalar);
+}
+
+FlatVector FlatVector::operator -() const {
+	return FlatVector(-this->x, -this->y);
 }
 
 FlatVector FlatVector::operator -() {

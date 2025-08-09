@@ -1,8 +1,7 @@
 #pragma once
 
 #include "raylib.h"
-#include "FlatBody.h"
-#include "FlatWorld.h"
+#include "FlatEntity.h"
 #include <vector>
 
 class Game {
@@ -12,10 +11,13 @@ private:
 	FlatWorld* world = nullptr;
 
 	double totalWorldTimeStep = 0;
-	int totalBodyCount = 0;
+	size_t totalBodyCount = 0;
 	int totalSampleCount = 0;
 	std::string worldStepTimeString;
 	std::string bodyCountString;
+
+	std::vector<FlatEntity*> entities;
+	std::vector<FlatEntity*> removalEntities;
 
 public:
 	Game();
@@ -28,6 +30,4 @@ public:
 	void Update(float dt);
 	void Render();
 	void Quit();
-
-	void WrapScreen();
 };

@@ -26,9 +26,11 @@ public:
 	FlatVector& operator *=(const FlatVector& vec);
 	FlatVector& operator /=(const FlatVector& vec);
 
+	FlatVector operator -() const;
 	FlatVector operator -();
 
 	FlatVector operator *(const float& scalar);
+	FlatVector operator *(const float& scalar) const;
 	FlatVector operator /(const float& scalar);
     friend FlatVector operator *(float scalar, const FlatVector& vec);
 

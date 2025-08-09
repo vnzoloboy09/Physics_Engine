@@ -53,6 +53,9 @@ public:
 	FlatBody(const float& _density, const float& _mass, const float& inertia, const float& _restitution, const float& _area,
 		const bool& _b_IsStatic, const float& _radius, const float& _width, const float& _height, 
 		const std::vector<FlatVector>& vertices, const ShapeType& shape);
+	
+	FlatBody(const FlatBody& other);
+	FlatBody(FlatBody&& other) noexcept;
 
 	void Move(const FlatVector& amount);
 	void MoveTo(const FlatVector& pos);
@@ -65,9 +68,9 @@ public:
 
 	std::vector<FlatVector> GetTransformVertices();
 
-	static std::optional<FlatBody> CreateCircleBody(float radius, float density, bool isStatic, float restitution);
+	static bool CreateCircleBody(float radius, float density, bool b_IsStatic, float restitution, FlatBody*& body);
 
-	static std::optional<FlatBody> CreateBoxBody( float width, float height, float density, bool b_IsStatic, float restitution);
+	static bool CreateBoxBody(float width, float height, float density, bool b_IsStatic,  float restitution, FlatBody*& body);
 
 	FlatAABB GetAABB();
 
