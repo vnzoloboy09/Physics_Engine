@@ -1,15 +1,18 @@
 #pragma once
 #include <vector>
-#include <memory> 
+#include <tuple>
+
 #include "raylib.h"
 #include "FlatBody.h"
 #include "FlatManifold.h"
 
 class FlatWorld {
 private:
+	using ContactPair = std::tuple<int, int>;
+
 	FlatVector gravity;
 	std::vector<FlatBody*> bodyList;
-	std::vector<FlatManifold*> contactList;
+	std::vector<ContactPair> contactPair;
 
 public:
 	static const float MIN_BODY_SIZE;  // m^2
@@ -21,8 +24,6 @@ public:
 	static const int MIN_ITERATIONS = 1;
 	static const int MAX_ITERATIONS = 128;
 
-	std::vector<FlatVector> contactPointsList;
-
 public:
 	FlatWorld();
 
@@ -30,9 +31,12 @@ public:
 	void RemoveBody(FlatBody*& body);
 	bool GetBody(const int& id, FlatBody*& body);
 	void Step(int iterations, float dt);
-	void SeparateBodies(FlatBody*& bodyA, FlatBody*& bodyB, const FlatVector& mtv);
-
-	void ResolveCollision(FlatManifold*& contact);
-
 	size_t BodyCount() const;
+
+private:
+	void StepBodies(const int& totalItertaion, const float& dt);
+	void BroadPhase();
+	void NarrowPhase();
+	void ResolveCollision(FlatManifold& contact);
+	void SeparateBodies(FlatBody*& bodyA, FlatBody*& bodyB, const FlatVector& mtv);
 };    

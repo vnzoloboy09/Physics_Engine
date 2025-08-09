@@ -13,7 +13,7 @@ FlatEntity::FlatEntity(FlatBody*& _body, const Color& _color) :
 {}
 
 FlatEntity::FlatEntity(FlatWorld*& world, const float& radius, const bool& isStatic, const FlatVector& position) {
-    FlatBody::CreateCircleBody(radius, 0.5f, isStatic, 1.0f, body);
+    FlatBody::CreateCircleBody(radius, 1.0f, isStatic, 0.5f, body);
     if (!body) {
         __debugbreak();
     }
@@ -23,7 +23,7 @@ FlatEntity::FlatEntity(FlatWorld*& world, const float& radius, const bool& isSta
 }
 
 FlatEntity::FlatEntity(FlatWorld*& world, const float& width, const float& height, const bool& isStatic, const FlatVector& position) {
-    FlatBody::CreateBoxBody(width, height, 0.5f, isStatic, 1.0f, body);
+    FlatBody::CreateBoxBody(width, height, 1.0f, isStatic, 0.5f, body);
     if (!body) {
         __debugbreak(); 
     }

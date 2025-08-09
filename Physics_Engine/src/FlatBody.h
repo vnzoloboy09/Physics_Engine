@@ -2,9 +2,7 @@
 
 #include "FlatVector.h"
 #include "FlatAABB.h"
-#include <string>
 #include <vector>
-#include <optional>
 #include <memory>
 
 class FlatWorld;

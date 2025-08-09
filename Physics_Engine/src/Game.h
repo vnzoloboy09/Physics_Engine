@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "FlatEntity.h"
 #include <vector>
+#include <string>
 
 class Game {
 private:

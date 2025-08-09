@@ -1,6 +1,5 @@
 #include "Collisions.h"
 #include "FlatMath.h"
-#include <algorithm>
 
 void Collisions::ProjectVertices(const std::vector<FlatVector>& vertices, const FlatVector& axis, float& _min, float& _max) {
 	_min = FLT_MAX;

@@ -5,9 +5,10 @@
 #include "FlatMath.h"
 #include "Collisions.h"
 #include "Graphics.h"
+#include "Random.h"
 
 #include <chrono>
-#include <algorithm>
+//#include <iostream>
 
 auto sampleTimer = std::chrono::high_resolution_clock::now();
 
@@ -40,7 +41,7 @@ void Game::Init() {
     world->AddBody(groundBody);
     entities.emplace_back(new FlatEntity(groundBody, DARKGRAY));
 
-    FlatBody* ledgeBody1 = nullptr;
+    /*FlatBody* ledgeBody1 = nullptr;
     FlatBody::CreateBoxBody(20.0f, 2.0f, 0.5f, true, 0.5f, ledgeBody1);
     if (!ledgeBody1) {
         __debugbreak();
@@ -58,7 +59,7 @@ void Game::Init() {
     ledgeBody2->MoveTo({ 10, -10 });
     ledgeBody2->Rotate(-2 * PI / 20.0f);
     world->AddBody(ledgeBody2);
-    entities.emplace_back(new FlatEntity(ledgeBody2, DARKBROWN));
+    entities.emplace_back(new FlatEntity(ledgeBody2, DARKBROWN));*/
 }
 
 void Game::Update(float dt) { 
@@ -118,15 +119,15 @@ void Game::HandleMouseInput() {
     }
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        float width = 2.0f + rand() % 2;
-        float height = 2.0f + rand() % 2;
+        float width = Random::Float(2.0f, 3.5f);
+        float height = Random::Float(2.0f, 3.5f);
 
         entities.emplace_back(new FlatEntity(world, width, height, false, 
             FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera))));
     }
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-        float radius = 0.5f + rand() % 2;
+        float radius = Random::Float(0.5f, 2.0f);
 
         entities.emplace_back(new FlatEntity(world, radius, false, 
             FlatConverter::ToFlatVector(GetScreenToWorld2D(GetMousePosition(), camera))));
@@ -156,10 +157,6 @@ void Game::Render() {
 
     for (auto& e : entities) {
         e->Render(e->body->shapeType);
-    }
-
-    for (auto& point : world->contactPointsList) {
-        DrawCircleV(FlatConverter::ToVector2(point), 0.2f, RED);
     }
 
     EndMode2D();
