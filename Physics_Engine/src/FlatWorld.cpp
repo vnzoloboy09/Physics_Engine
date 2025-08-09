@@ -84,8 +84,8 @@ void FlatWorld::NarrowPhase() {
     for (auto& pair : contactPair) {
         FlatVector normal;
         float depth;
-        FlatBody* bodyA = bodyList[get<0>(pair)];
-        FlatBody* bodyB = bodyList[get<1>(pair)];
+        FlatBody*& bodyA = bodyList[get<0>(pair)];
+        FlatBody*& bodyB = bodyList[get<1>(pair)];
 
         if (Collisions::Collide(bodyA, bodyB, normal, depth)) {
             SeparateBodies(bodyA, bodyB, normal * depth);
@@ -95,7 +95,7 @@ void FlatWorld::NarrowPhase() {
 
             Collisions::FindContactPoints(bodyA, bodyB, contact1, contact2, contactCount);
             FlatManifold contact(bodyA, bodyB, normal, depth, contact1, contact2, contactCount);
-            ResolveCollision(contact);
+            ResolveCollisionWithRotationAndFriction(contact);
         }
 
     }
@@ -114,7 +114,7 @@ void FlatWorld::SeparateBodies(FlatBody*& bodyA, FlatBody*& bodyB, const FlatVec
     }
 }
 
-void FlatWorld::ResolveCollision(FlatManifold& contact) {
+void FlatWorld::ResolveCollisionBasic(FlatManifold& contact) {
     float restitution = std::min(contact.bodyA->restitution, contact.bodyB->restitution);
     FlatVector relativeVelocity = contact.bodyB->GetLinearVelocity() - contact.bodyA->GetLinearVelocity();
 
@@ -127,6 +127,182 @@ void FlatWorld::ResolveCollision(FlatManifold& contact) {
 
     FlatVector impulse = magnitude * contact.normal;
 
-    contact.bodyA->linearVelovity -= impulse * contact.bodyA->invMass;
-    contact.bodyB->linearVelovity += impulse * contact.bodyB->invMass;
+    contact.bodyA->linearVelocity -= impulse * contact.bodyA->invMass;
+    contact.bodyB->linearVelocity += impulse * contact.bodyB->invMass;
+}
+
+void FlatWorld::ResolveCollisionWithRotation(FlatManifold& contact) {
+    float restitution = std::min(contact.bodyA->restitution, contact.bodyB->restitution);
+
+    FlatVector contactList[2] = {contact.contact1, contact.contact2};
+    FlatVector impulseList[2];
+    FlatVector raList[2];
+    FlatVector rbList[2];
+
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector ra = contactList[i] - contact.bodyA->GetPosition();
+        FlatVector rb = contactList[i] - contact.bodyB->GetPosition();
+
+        raList[i] = ra;
+        rbList[i] = rb;
+
+        FlatVector raPerp(-ra.y, ra.x);
+        FlatVector rbPerp(-rb.y, rb.x);
+
+        FlatVector angularLinearVelocityA = raPerp * contact.bodyA->GetAngularVelocity();
+        FlatVector angularLinearVelocityB = rbPerp * contact.bodyB->GetAngularVelocity();
+
+        FlatVector relativeVelocity = 
+            (contact.bodyB->GetLinearVelocity() + angularLinearVelocityB) - 
+            (contact.bodyA->GetLinearVelocity() + angularLinearVelocityA);
+
+        float contactVelocityMagnitue = FlatMath::Dot(relativeVelocity, contact.normal);
+
+        if (contactVelocityMagnitue > 0.0f) {
+            continue;
+        }
+
+        float raPerpDotNormal = FlatMath::Dot(raPerp, contact.normal);
+        float rbPerpDotNormal = FlatMath::Dot(rbPerp, contact.normal);
+
+        float denominator = contact.bodyA->invMass + contact.bodyB->invMass + 
+            (raPerpDotNormal * raPerpDotNormal) * contact.bodyA->invInertia +
+            (rbPerpDotNormal * rbPerpDotNormal) * contact.bodyB->invInertia;
+
+        float magnitude = -(1.0f + restitution) * contactVelocityMagnitue;
+        magnitude /= denominator * (float)contact.contactCount;
+
+        FlatVector impulse = magnitude * contact.normal;
+        impulseList[i] = impulse;
+    }
+
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector impulse = impulseList[i];
+
+        contact.bodyA->linearVelocity += -impulse * contact.bodyA->invMass;
+        contact.bodyA->angularVelocity += -FlatMath::Cross(raList[i], impulse) * contact.bodyA->invInertia;
+        
+        contact.bodyB->linearVelocity += impulse * contact.bodyB->invMass;
+        contact.bodyB->angularVelocity += FlatMath::Cross(rbList[i], impulse) * contact.bodyB->invInertia;
+
+    }
+}
+
+void FlatWorld::ResolveCollisionWithRotationAndFriction(FlatManifold& contact) {
+    float restitution = std::min(contact.bodyA->restitution, contact.bodyB->restitution);
+
+    float staticFriction = (contact.bodyA->staticFriction + contact.bodyA->staticFriction) / 2.0f;
+    float dynamicFriction = (contact.bodyA->dynamicFriction + contact.bodyA->dynamicFriction) / 2.0f;
+
+    FlatVector contactList[2] = { contact.contact1, contact.contact2 };
+    FlatVector impulseList[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
+    FlatVector frictionImpulseList[2] = {{ 0.0f, 0.0f }, { 0.0f, 0.0f }};
+    FlatVector raList[2] = {{ 0.0f, 0.0f }, { 0.0f, 0.0f }};
+    FlatVector rbList[2] = {{ 0.0f, 0.0f }, { 0.0f, 0.0f }};
+    float magnitudeList[2] = { 0.0f, 0.0f };
+
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector ra = contactList[i] - contact.bodyA->GetPosition();
+        FlatVector rb = contactList[i] - contact.bodyB->GetPosition();
+
+        raList[i] = ra;
+        rbList[i] = rb;
+
+        FlatVector raPerp(-ra.y, ra.x);
+        FlatVector rbPerp(-rb.y, rb.x);
+
+        FlatVector angularLinearVelocityA = raPerp * contact.bodyA->GetAngularVelocity();
+        FlatVector angularLinearVelocityB = rbPerp * contact.bodyB->GetAngularVelocity();
+
+        FlatVector relativeVelocity =
+            (contact.bodyB->GetLinearVelocity() + angularLinearVelocityB) -
+            (contact.bodyA->GetLinearVelocity() + angularLinearVelocityA);
+
+        float contactVelocityMagnitue = FlatMath::Dot(relativeVelocity, contact.normal);
+
+        if (contactVelocityMagnitue > 0.0f) {
+            continue;
+        }
+
+        float raPerpDotNormal = FlatMath::Dot(raPerp, contact.normal);
+        float rbPerpDotNormal = FlatMath::Dot(rbPerp, contact.normal);
+
+        float denominator = contact.bodyA->invMass + contact.bodyB->invMass +
+            (raPerpDotNormal * raPerpDotNormal) * contact.bodyA->invInertia +
+            (rbPerpDotNormal * rbPerpDotNormal) * contact.bodyB->invInertia;
+
+        float magnitude = -(1.0f + restitution) * contactVelocityMagnitue;
+        magnitude /= denominator * (float)contact.contactCount;
+
+        magnitudeList[i] = magnitude;
+
+        FlatVector impulse = magnitude * contact.normal;
+        impulseList[i] = impulse;
+    }
+
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector impulse = impulseList[i];
+
+        contact.bodyA->linearVelocity += -impulse * contact.bodyA->invMass;
+        contact.bodyA->angularVelocity += -FlatMath::Cross(raList[i], impulse) * contact.bodyA->invInertia;
+
+        contact.bodyB->linearVelocity += impulse * contact.bodyB->invMass;
+        contact.bodyB->angularVelocity += FlatMath::Cross(rbList[i], impulse) * contact.bodyB->invInertia;
+    }
+
+    // Friction
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector ra = contactList[i] - contact.bodyA->GetPosition();
+        FlatVector rb = contactList[i] - contact.bodyB->GetPosition();
+
+        raList[i] = ra;
+        rbList[i] = rb;
+
+        FlatVector raPerp(-ra.y, ra.x);
+        FlatVector rbPerp(-rb.y, rb.x);
+
+        FlatVector angularLinearVelocityA = raPerp * contact.bodyA->GetAngularVelocity();
+        FlatVector angularLinearVelocityB = rbPerp * contact.bodyB->GetAngularVelocity();
+
+        FlatVector relativeVelocity =
+            (contact.bodyB->GetLinearVelocity() + angularLinearVelocityB) -
+            (contact.bodyA->GetLinearVelocity() + angularLinearVelocityA);
+
+        FlatVector tangent = relativeVelocity - FlatMath::Dot(relativeVelocity, contact.normal) * contact.normal;
+
+        if (FlatMath::NearlyEqual(tangent, { 0.0f, 0.0f })) continue;
+        tangent = FlatMath::Normalize(tangent);
+
+        float raPerpDotTangent = FlatMath::Dot(raPerp, tangent);
+        float rbPerpDotTangent = FlatMath::Dot(rbPerp, tangent);
+
+        float denominator = contact.bodyA->invMass + contact.bodyB->invMass +
+            (raPerpDotTangent * raPerpDotTangent) * contact.bodyA->invInertia +
+            (rbPerpDotTangent * rbPerpDotTangent) * contact.bodyB->invInertia;
+
+        float tangentMagnitude = -FlatMath::Dot(relativeVelocity, tangent);
+        tangentMagnitude /= denominator * (float)contact.contactCount;
+        
+        FlatVector frictionImpulse;
+        float magnitude = magnitudeList[i];
+
+        if (abs(tangentMagnitude) <= magnitude * staticFriction) {
+            frictionImpulse = tangentMagnitude * tangent;
+        }
+        else {
+            frictionImpulse = -magnitude * tangent * dynamicFriction;
+        }
+
+        frictionImpulseList[i] = frictionImpulse;
+    }
+
+    for (int i = 0; i < contact.contactCount; i++) {
+        FlatVector frictionImpulse = frictionImpulseList[i];
+
+        contact.bodyA->linearVelocity += -frictionImpulse * contact.bodyA->invMass;
+        contact.bodyA->angularVelocity += -FlatMath::Cross(raList[i], frictionImpulse) * contact.bodyA->invInertia;
+
+        contact.bodyB->linearVelocity += frictionImpulse * contact.bodyB->invMass;
+        contact.bodyB->angularVelocity += FlatMath::Cross(rbList[i], frictionImpulse) * contact.bodyB->invInertia;
+    }
 }

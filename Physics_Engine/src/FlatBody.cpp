@@ -4,12 +4,12 @@
 #include "FlatWorld.h"
 
 FlatBody::FlatBody(const float& _density, const float& _mass, const float& _inertia, const float& _restitution, const float& _area,
-	const bool& _b_IsStatic, const float& _radius, const float& _width, const float& _height, 
+	const bool& _b_IsStatic, const float& _radius, const float& _width, const float& _height,
 	const std::vector<FlatVector>& _vertices, const ShapeType& shape) :
 	position(FlatVector()),
 	density(_density),
 	mass(_mass),
-	invMass(!_b_IsStatic ? 1.0f / mass : 0.0f ),
+	invMass(!_b_IsStatic ? 1.0f / mass : 0.0f),
 	restitution(_restitution),
 	area(_area),
 	b_IsStatic(_b_IsStatic),
@@ -19,7 +19,9 @@ FlatBody::FlatBody(const float& _density, const float& _mass, const float& _iner
 	shapeType(shape),
 	vertices(_vertices),
 	inertia(_inertia),
-	invInertia(!b_IsStatic ? 1.0f / inertia : 0.0f)
+	invInertia(!b_IsStatic ? 1.0f / inertia : 0.0f),
+	staticFriction(0.6f),
+	dynamicFriction(0.4f)
 {
 	force = FlatVector();
 
@@ -55,7 +57,9 @@ FlatBody::FlatBody(const FlatBody& other) :
 	angle(other.angle),
 	angularVelocity(other.angularVelocity),
 	b_TransformUpdateRequired(other.b_TransformUpdateRequired),
-	b_AabbUpdateRequired(other.b_AabbUpdateRequired)
+	b_AabbUpdateRequired(other.b_AabbUpdateRequired),
+	staticFriction(other.staticFriction),
+	dynamicFriction(other.dynamicFriction)
 {}
 
 FlatBody::FlatBody(FlatBody&& other) noexcept :
@@ -78,7 +82,9 @@ FlatBody::FlatBody(FlatBody&& other) noexcept :
 	angle(other.angle),
 	angularVelocity(other.angularVelocity),
 	b_TransformUpdateRequired(other.b_TransformUpdateRequired),
-	b_AabbUpdateRequired(other.b_AabbUpdateRequired)
+	b_AabbUpdateRequired(other.b_AabbUpdateRequired),
+	staticFriction(other.staticFriction),
+	dynamicFriction(other.dynamicFriction)
 {}
 
 std::vector<FlatVector> FlatBody::CreateBoxVertices(const float& width, const float& height) {
@@ -97,11 +103,11 @@ std::vector<FlatVector> FlatBody::CreateBoxVertices(const float& width, const fl
 }
 
 FlatVector FlatBody::GetLinearVelocity() const {
-	return linearVelovity;
+	return linearVelocity;
 }
 
 void FlatBody::SetLinearVelocity(const FlatVector& value) {
-	linearVelovity = value;
+	linearVelocity = value;
 }
 
 void FlatBody::Move(const FlatVector& amount) {
@@ -130,15 +136,15 @@ void FlatBody::RotateTo(const float& ang) {
 
 void FlatBody::Step(FlatVector& gravity, const int& iterations, float dt) {
 	/*FlatVector acceleration = force / mass;
-	linearVelovity += acceleration * dt;*/
+	linearVelocity += acceleration * dt;*/
 
 	if (b_IsStatic) return;
 
 	dt /= (float)iterations;
 
-	linearVelovity += gravity * dt;
+	linearVelocity += gravity * dt;
 
-	position += linearVelovity * dt;
+	position += linearVelocity * dt;
 	angle += angularVelocity * dt;
 
 	force = { 0.0f, 0.0f };
@@ -259,4 +265,12 @@ FlatAABB FlatBody::GetAABB() {
 
 FlatVector FlatBody::GetPosition() const {
 	return position;
+}
+
+float FlatBody::GetAngle() const {
+	return angle;
+}
+
+float FlatBody::GetAngularVelocity() const {
+	return angularVelocity;
 }

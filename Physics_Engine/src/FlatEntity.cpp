@@ -37,10 +37,17 @@ void FlatEntity::Render(FlatBody::ShapeType shape) {
     Vector2 pos = FlatConverter::ToVector2(body->GetPosition());
     
     if (body->shapeType == FlatBody::Box) {
-        Graphics::DrawBoxFill(pos, body->width, body->height, body->angle, color);
+        Graphics::DrawBoxFill(pos, body->width, body->height, body->GetAngle(), color);
         Graphics::DrawPolygonOutline(FlatConverter::ToVector2List(body->GetTransformVertices()), BLUE);
     }
     else if(body->shapeType == FlatBody::Circle) {
+        FlatVector va = { 0.0f, 0.0f };
+        FlatVector vb = { body->radius, 0.0f };
+        FlatTransform transform(body->GetPosition(), body->GetAngle());
+        va = FlatVector::Transform(va, transform);
+        vb = FlatVector::Transform(vb, transform);
+
         Graphics::DrawCircleFull(pos, body->radius, color, BLUE);
+        DrawLineEx(FlatConverter::ToVector2(va), FlatConverter::ToVector2(vb), 0.1f, RED);
     }
 }

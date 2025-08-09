@@ -37,6 +37,8 @@ private:
 	void StepBodies(const int& totalItertaion, const float& dt);
 	void BroadPhase();
 	void NarrowPhase();
-	void ResolveCollision(FlatManifold& contact);
+	void ResolveCollisionBasic(FlatManifold& contact);
+	void ResolveCollisionWithRotation(FlatManifold& contact);
+	void ResolveCollisionWithRotationAndFriction(FlatManifold& contact);
 	void SeparateBodies(FlatBody*& bodyA, FlatBody*& bodyB, const FlatVector& mtv);
 };    

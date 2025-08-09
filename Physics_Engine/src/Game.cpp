@@ -41,7 +41,7 @@ void Game::Init() {
     world->AddBody(groundBody);
     entities.emplace_back(new FlatEntity(groundBody, DARKGRAY));
 
-    /*FlatBody* ledgeBody1 = nullptr;
+    FlatBody* ledgeBody1 = nullptr;
     FlatBody::CreateBoxBody(20.0f, 2.0f, 0.5f, true, 0.5f, ledgeBody1);
     if (!ledgeBody1) {
         __debugbreak();
@@ -59,7 +59,7 @@ void Game::Init() {
     ledgeBody2->MoveTo({ 10, -10 });
     ledgeBody2->Rotate(-2 * PI / 20.0f);
     world->AddBody(ledgeBody2);
-    entities.emplace_back(new FlatEntity(ledgeBody2, DARKBROWN));*/
+    entities.emplace_back(new FlatEntity(ledgeBody2, DARKBROWN));
 }
 
 void Game::Update(float dt) { 

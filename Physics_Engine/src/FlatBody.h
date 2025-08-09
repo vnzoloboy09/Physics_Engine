@@ -26,10 +26,10 @@ public:
 	const bool b_IsStatic;
 	const float inertia;
 	const float invInertia;
+	const float staticFriction;
+	const float dynamicFriction;
 
 	const std::vector<FlatVector> vertices;
-	float angle;
-	float angularVelocity;
 
 private:
 	friend class FlatWorld;
@@ -39,8 +39,10 @@ private:
 	bool b_TransformUpdateRequired;
 	bool b_AabbUpdateRequired;
 
+	float angle;
+	float angularVelocity;
 	FlatVector position;
-	FlatVector linearVelovity;
+	FlatVector linearVelocity;
 	FlatVector force;
 
 private:
@@ -65,6 +67,9 @@ public:
 	FlatVector GetLinearVelocity() const;
 
 	std::vector<FlatVector> GetTransformVertices();
+
+	float GetAngle() const;
+	float GetAngularVelocity() const;
 
 	static bool CreateCircleBody(float radius, float density, bool b_IsStatic, float restitution, FlatBody*& body);
 

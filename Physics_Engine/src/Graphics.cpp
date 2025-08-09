@@ -31,7 +31,7 @@ void Graphics::DrawBoxFill(const Vector2& position, const float& width, const fl
 }
 
 void Graphics::DrawBoxOutline(const Vector2& position, const float& width, const float& height, const Color& outlineColor) {
-    DrawRectangleLinesEx({ position.x - width / 2.0f, position.y - height / 2.0f, width, height }, 1, outlineColor);
+    DrawRectangleLinesEx({ position.x - width / 2.0f, position.y - height / 2.0f, width, height }, 0.1f, outlineColor);
 }
 
 void Graphics::DrawBoxFull(const Vector2& position, const float& width, const float& height, 
