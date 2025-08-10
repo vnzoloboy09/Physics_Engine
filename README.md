@@ -22,3 +22,10 @@ cd vcpkg
 ./bootstrap-vcpkg.sh
 ./vcpkg/vcpkg install raylib
 
+### 🛠️ Build Instructions (CMake)
+```bash
+mkdir build
+cd build
+cmake ..
+make
+
