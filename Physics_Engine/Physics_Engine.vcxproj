@@ -150,7 +150,6 @@
     <ClCompile Include="src\FlatEntity.cpp" />
     <ClCompile Include="src\FlatManifold.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
-    <ClCompile Include="src\FlatPhysics.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
     <ClCompile Include="src\FlatVector.cpp" />
     <ClCompile Include="src\Game.cpp" />

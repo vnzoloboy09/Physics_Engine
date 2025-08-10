@@ -12,6 +12,14 @@ FlatWorld::FlatWorld() {
 	gravity = { 0.0f, 9.81f };
 }
 
+FlatWorld::~FlatWorld() {
+    for (auto& body : bodyList) {
+        delete body;
+    }
+    bodyList.clear();
+    contactPair.clear();
+}
+
 void FlatWorld::AddBody(FlatBody*& body) {
     bodyList.push_back(std::move(body));
 }

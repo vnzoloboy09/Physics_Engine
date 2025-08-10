@@ -18,9 +18,6 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatPhysics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\FlatVector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -13,7 +13,19 @@
 auto sampleTimer = std::chrono::high_resolution_clock::now();
 
 Game::Game() = default;
-Game::~Game() = default;
+Game::~Game() {
+    for (auto& e : entities) {
+        delete e;
+    }
+    entities.clear();
+
+    for (auto& e : removalEntities) {
+        delete e;
+    }
+    removalEntities.clear();
+
+    delete world;
+}
 
 void Game::Init() {
     srand(time(0));

@@ -11,4 +11,4 @@ FlatManifold::FlatManifold(FlatBody* bdA, FlatBody* bdB, FlatVector nor, float d
 	contactCount(ctCount) 
 {}
 
-FlatManifold::~FlatManifold() = default;
+FlatManifold::~FlatManifold() {}

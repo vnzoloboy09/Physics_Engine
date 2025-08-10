@@ -17,5 +17,7 @@ public:
 
 	FlatEntity(FlatWorld*& world, const float& width, const float& height, const bool& isStatic, const FlatVector& postion);
 
+	~FlatEntity();
+
 	void Render(FlatBody::ShapeType shape);
 };

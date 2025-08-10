@@ -32,6 +32,9 @@ FlatEntity::FlatEntity(FlatWorld*& world, const float& width, const float& heigh
     world->AddBody(body);
 }
 
+FlatEntity::~FlatEntity() {
+    delete body;
+}
 
 void FlatEntity::Render(FlatBody::ShapeType shape) {
     Vector2 pos = FlatConverter::ToVector2(body->GetPosition());

@@ -26,6 +26,7 @@ public:
 
 public:
 	FlatWorld();
+	~FlatWorld();
 
 	void AddBody(FlatBody*& body);
 	void RemoveBody(FlatBody*& body);
